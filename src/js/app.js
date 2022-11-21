@@ -1,6 +1,5 @@
 // import "../scss/style.scss";
 import "../index.html";
+import user from "./user.ts";
 
-const a = {
-  babenko: 5,
-};
+console.log(user);

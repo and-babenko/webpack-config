@@ -1,14 +1,14 @@
-const path = require("path"); // 2.1
+const path = require("path"); /* 2.1 */
 
-const HTMLWebpackPlugin = require("html-webpack-plugin"); // 8.1
-const MiniCssExtractPlugin = require("mini-css-extract-plugin"); // 9.1
+const HTMLWebpackPlugin = require("html-webpack-plugin"); /* 9.1 */
+const MiniCssExtractPlugin = require("mini-css-extract-plugin"); /* 10.1 */
+const OptimizeCssAssetWebpackPlugin = require("optimize-css-assets-webpack-plugin"); /* 10.4 */
+const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin"); /* 11.2 */
+const TerserWebpackPlugin = require("terser-webpack-plugin"); /* 14.2 */
 
-const OptimizeCssAssetWebpackPlugin = require("optimize-css-assets-webpack-plugin"); // 17.1
-const TerserWebpackPlugin = require("terser-webpack-plugin"); // 17.2
-const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 
-// 2.2
 const PATHS = {
+  /* 2.2 */
   src: path.resolve(__dirname, "src"),
   dist: path.resolve(__dirname, "dist"),
   devAssets: path.resolve(__dirname, "src/assets"),
@@ -16,86 +16,33 @@ const PATHS = {
   html: path.resolve(__dirname, "src/index.html"),
 };
 
-// 1
 module.exports = (env, argv) => {
-  const isDev = argv.mode === "development"; // 6.1
-  const isProd = !isDev; // 6.2
+  /* 1 */
+  const isDev = argv.mode === "development"; /* 6.2 */
+  const isProd = !isDev; /* 6.3 */
 
   const filename = (ext) =>
-    isDev ? `[name]${ext}` : `[name].[hash].min${ext}`; // 6.3
-
-  const optimization = () => {
-    // 17.4
-    const configObj = {
-      splitChunks: {
-        // 17.5
-        chunks: "all",
-      },
-    };
-    if (isProd) {
-      configObj.minimizer = [
-        new OptimizeCssAssetWebpackPlugin(), // 17.6
-        new TerserWebpackPlugin(), // 17.7
-        new ImageMinimizerPlugin({
-          minimizer: {
-            implementation: ImageMinimizerPlugin.imageminMinify,
-            options: {
-              plugins: [
-                ["gifsicle", { interlaced: true }],
-                ["jpegtran", { progressive: true }],
-                ["optipng", { optimizationLevel: 5 }],
-                [
-                  "svgo",
-                  {
-                    plugins: [
-                      {
-                        name: "preset-default",
-                        params: {
-                          overrides: {
-                            removeViewBox: false,
-                            addAttributesToSVGElement: {
-                              params: {
-                                attributes: [
-                                  { xmlns: "http://www.w3.org/2000/svg" },
-                                ],
-                              },
-                            },
-                          },
-                        },
-                      },
-                    ],
-                  },
-                ],
-              ],
-            },
-          },
-        }),
-      ];
-    }
-    return configObj;
-  };
+    isDev ? `[name]${ext}` : `[name].[hash].min${ext}`; /* 6.4 */
 
   return {
-    mode: "development", // 6
+    mode: "development" /* 6.1 */,
 
-    context: PATHS.src, // 3
+    context: PATHS.src /* 3 */,
 
-    devtool: isProd ? false : "source-map", // 16
-
-    // 4
     entry: {
+      /* 4 */
       app: ["./js/app.js", "./scss/style.scss"],
     },
 
-    // 5
     output: {
+      /* 5 */
       filename: `./js/${filename(".js")}`,
       path: PATHS.dist,
       clean: true,
     },
 
-    // 7
     devServer: {
+      /* 7 */
       static: {
         directory: PATHS.dist,
       },
@@ -106,45 +53,29 @@ module.exports = (env, argv) => {
       hot: true,
     },
 
-    optimization: optimization(), // 17.3
+    devtool: isProd ? false : "source-map" /* 8 */,
 
-    plugins: [
-      // new CopyWebpackPlugin({
-      // const CopyWebpackPlugin = require("copy-webpack-plugin");
-      //   patterns: [
-      //     {
-      //       from: PATHS.devAssets,
-      //       to: PATHS.prodAssets,
-      //       noErrorOnMissing: true,
-      //     },
-      //   ],
-      // }),
-
-      // 8.2
-      new HTMLWebpackPlugin({
-        template: PATHS.html,
-        filename: "index.html",
-        minify: {
-          collapseWhitespace: isProd,
-        },
-      }),
-
-      // 9.2
-      new MiniCssExtractPlugin({
-        filename: `./css/${filename(".css")}`,
-      }),
-    ],
+    resolve: {
+      /* 14.5 */
+      extensions: [".ts", ".js"],
+    },
 
     module: {
       rules: [
         {
-          // 8.3
+          /* 9.3 */
           test: /\.html$/i,
-          loader: "html-loader",
+          use: [
+            {
+              loader: "html-loader",
+              options: {
+                minimize: isProd,
+              },
+            },
+          ],
         },
-
         {
-          // 9.3
+          /* 10.3 */
           test: /\.(s[ac]ss|css)$/,
           use: [
             {
@@ -169,35 +100,97 @@ module.exports = (env, argv) => {
           exclude: "/node_modules",
         },
         {
-          // 10.1
+          /* 11.1 */
           test: /\.(png|jpe?g|gif)$/i,
           type: "asset/resource",
           generator: {
             filename: `assets/imgs/${filename("[ext]")}`,
           },
         },
-        // {
-        //   test: /\.(ico)$/i,
-        //   type: "asset/resource",
-        //   generator: {
-        //     filename: `assets/${filename("[ext]")}`,
-        //   },
-        // },
         {
-          // 14
-          test: /\.(woff2)$/i,
+          /* 13.1 */
+          test: /\.(ico)$/i,
           type: "asset/resource",
           generator: {
-            filename: `fonts/${filename("[ext]")}`,
+            filename: `assets/favicon/${filename("[ext]")}`,
           },
         },
         {
-          // 15
+          /* 13.2 */
+          test: /\.(woff(2)?|eot|ttf|otf)$/,
+          type: "asset/resource",
+          generator: {
+            filename: `assets/fonts/${filename("[ext]")}`,
+          },
+        },
+        {
+          /* 14.1 */
           test: /\.js$/,
-          exclude: /node_modules/, // 15.1
-          use: ["babel-loader"], // 15.2
+          use: ["babel-loader"],
+          exclude: /node_modules/,
+        },
+        {
+          /* 14.4 */
+          test: /\.ts$/,
+          loader: "ts-loader",
+          exclude: /node_modules/,
         },
       ],
     },
+
+    plugins: [
+      new HTMLWebpackPlugin({
+        /* 9.2 */
+        template: PATHS.html,
+        filename: "index.html",
+        minify: {
+          collapseWhitespace: isProd,
+        },
+      }),
+      new MiniCssExtractPlugin({
+        /* 10.2 */
+        filename: `./css/${filename(".css")}`,
+      }),
+    ],
+
+    optimization: (function () {
+      /* 10.5 */
+      const configObj = {
+        /* 15 */
+        splitChunks: {
+          chunks: "all",
+        },
+      };
+
+      if (isProd) {
+        configObj.minimizer = [
+          new OptimizeCssAssetWebpackPlugin() /* 10.6 */,
+          new ImageMinimizerPlugin({
+            /* 11.3 */
+            minimizer: {
+              implementation: ImageMinimizerPlugin.sharpMinify,
+              options: {
+                encodeOptions: {
+                  jpeg: {
+                    quality: 100,
+                  },
+                  webp: {
+                    lossless: true,
+                  },
+                  avif: {
+                    lossless: true,
+                  },
+                  png: {
+                    lossless: true,
+                  },
+                },
+              },
+            },
+          }),
+          new TerserWebpackPlugin() /* 14.3 */,
+        ];
+      }
+      return configObj;
+    })(),
   };
 };
