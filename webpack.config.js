@@ -6,7 +6,6 @@ const OptimizeCssAssetWebpackPlugin = require("optimize-css-assets-webpack-plugi
 const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin"); /* 11.2 */
 const TerserWebpackPlugin = require("terser-webpack-plugin"); /* 14.2 */
 
-
 const PATHS = {
   /* 2.2 */
   src: path.resolve(__dirname, "src"),
@@ -105,6 +104,14 @@ module.exports = (env, argv) => {
           type: "asset/resource",
           generator: {
             filename: `assets/imgs/${filename("[ext]")}`,
+          },
+        },
+        {
+          /* 12 */
+          test: /\.(svg)$/i,
+          type: "asset/resource",
+          generator: {
+            filename: `assets/svgs/${filename("[ext]")}`,
           },
         },
         {
